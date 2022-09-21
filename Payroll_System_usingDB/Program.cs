@@ -11,20 +11,21 @@ namespace Payroll_System_usingDB
             Database db = new Database();
 
             Employee Agus = new Employee("Agus Kuncoro", "081234567891", "P2", "897654321");
-            db.InsertEmployee(Agus);
+            db.InsertEmployee(Agus); //Menambahkan Data Karyawan
 
-            Overtime ot_1 = new Overtime(2, "2022-09-12",100000);
-            db.InsertOvertime(ot_1);
+            Overtime ot_1 = new Overtime(2, "2022-09-12", 100000);
+            db.InsertOvertime(ot_1); //Menambahkan Data Lembur
 
             Bonus bn_1 = new Bonus(2, "2022-09-12", 500000, "Bonus Penjualan Bulanan");
-            db.InsertBonus(bn_1);
+            db.InsertBonus(bn_1); //Menambahkan Data Bonus
 
             salaryCut sc_1 = new salaryCut(2, "2022-09-12", 50000, "Terlambat");
-            db.InsertSalaryCut(sc_1);
+            db.InsertSalaryCut(sc_1); //Menambahkan Data Potongan Gaji
 
-            db.TotalSalary();
-            db.getSalary();
-            //db.deleteSalary(2);
+            db.TotalSalary(); //Mengisi tabel Salary dari data tabel lain yang sudah terisi
+            db.getSalary(); //Mencetak tabel Salary
+            //db.deleteSalary(2); //Jika ingin menghapus data di Salary berdasarkan ID
+            //db.updateEmployeePhone(1, "081208120812"); //Jika Ingin mengubah data nomer telepon Karyawan
 
         }
 
@@ -401,7 +402,7 @@ namespace Payroll_System_usingDB
         }
 
 
-        public void deleteSalary(int id)
+            public void deleteSalary(int id)
         {
             using (SqlConnection sqlConnection = new SqlConnection(connectionString))
             {
@@ -433,6 +434,44 @@ namespace Payroll_System_usingDB
             }
 
         }
+
+            public void updateEmployeePhone(int id, string phone)
+            {
+                using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+                {
+                    sqlConnection.Open();
+                    SqlTransaction sqlTransaction = sqlConnection.BeginTransaction();
+
+                    SqlCommand sqlCommand = sqlConnection.CreateCommand();
+                    sqlCommand.Transaction = sqlTransaction;
+
+                    SqlParameter eid= new SqlParameter();
+                    eid.ParameterName = "@id";
+                    eid.Value = id;
+
+                    SqlParameter ephone = new SqlParameter();
+                    ephone.ParameterName = "@phone";
+                    ephone.Value = phone;
+
+                    sqlCommand.Parameters.Add(ephone);
+                    sqlCommand.Parameters.Add(eid);
+
+                    try
+                    {
+                        sqlCommand.CommandText = "UPDATE Employee SET Phone=@phone " +
+                            "WHERE EmployeeID=@id";
+                        sqlCommand.ExecuteNonQuery();
+                        sqlTransaction.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.InnerException);
+
+                    }
+
+                }
+
+            }
 
 
     }
