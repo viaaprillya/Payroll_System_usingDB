@@ -13,9 +13,11 @@ namespace Payroll_System_usingDB
             //db.InsertEmployee(Agus);
 
             Overtime ot_1 = new Overtime(2, "2022-09-12",100000);
-            db.InsertOvertime(ot_1);
+            //db.InsertOvertime(ot_1);
             Bonus bn_1 = new Bonus(2, "2022-09-12", 500000, "Bonus Penjualan Bulanan");
+            //db.InsertBonus(bn_1);
             salaryCut sc_1 = new salaryCut(2, "2022-09-12", 50000, "Terlambat");
+            db.InsertSalaryCut(sc_1);
 
             //Console.WriteLine(db.getEmployeeID(Agus));
 
@@ -242,7 +244,7 @@ namespace Payroll_System_usingDB
             }
         }
 
-        void InsertBonus(Bonus bonus)
+        public void InsertBonus(Bonus bonus)
         {
             using (SqlConnection sqlConnection = new SqlConnection(connectionString))
             {
@@ -264,18 +266,19 @@ namespace Payroll_System_usingDB
                 amount.ParameterName = "@amount";
                 amount.Value = bonus.amount;
 
-                SqlParameter  = new SqlParameter();
-                fee.ParameterName = "@fee";
-                fee.Value = overtime.fee;
+                SqlParameter desc = new SqlParameter();
+                desc.ParameterName = "@desc";
+                desc.Value = bonus.desc;
 
                 sqlCommand.Parameters.Add(employeeID);
                 sqlCommand.Parameters.Add(date);
-                sqlCommand.Parameters.Add(fee);
+                sqlCommand.Parameters.Add(amount);
+                sqlCommand.Parameters.Add(desc);
 
                 try
                 {
-                    sqlCommand.CommandText = "INSERT INTO Overtime " +
-                        "(EmployeeID, Overtime_Date, Overtime_Fee) VALUES (@employeeID, @date, @fee)";
+                    sqlCommand.CommandText = "INSERT INTO Bonus " +
+                        "(EmployeeID, Bonus_Date, Bonus_Amount, Bonus_Description) VALUES (@employeeID, @date, @amount, @desc)";
                     sqlCommand.ExecuteNonQuery();
                     sqlTransaction.Commit();
                 }
@@ -286,12 +289,52 @@ namespace Payroll_System_usingDB
             }
         }
 
-        void InsertSalaryCut()
+        public void InsertSalaryCut(salaryCut sc)
         {
+            using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+            {
+                sqlConnection.Open();
+                SqlTransaction sqlTransaction = sqlConnection.BeginTransaction();
 
+                SqlCommand sqlCommand = sqlConnection.CreateCommand();
+                sqlCommand.Transaction = sqlTransaction;
+
+                SqlParameter employeeID = new SqlParameter();
+                employeeID.ParameterName = "@employeeID";
+                employeeID.Value = sc.employeeID;
+
+                SqlParameter date = new SqlParameter();
+                date.ParameterName = "@date";
+                date.Value = sc.date;
+
+                SqlParameter cut = new SqlParameter();
+                cut.ParameterName = "@cut";
+                cut.Value = sc.cut;
+
+                SqlParameter desc = new SqlParameter();
+                desc.ParameterName = "@desc";
+                desc.Value = sc.desc;
+
+                sqlCommand.Parameters.Add(employeeID);
+                sqlCommand.Parameters.Add(date);
+                sqlCommand.Parameters.Add(cut);
+                sqlCommand.Parameters.Add(desc);
+
+                try
+                {
+                    sqlCommand.CommandText = "INSERT INTO SalaryCut " +
+                        "(EmployeeID, SalaryCut_Date, SalaryCut_Amount, SalaryCut_Description) VALUES (@employeeID, @date, @cut, @desc)";
+                    sqlCommand.ExecuteNonQuery();
+                    sqlTransaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.InnerException);
+                }
+            }
         }
 
-        void getTotalSalary()
+        public void getTotalSalary(int employeeID)
         {
 
         }
