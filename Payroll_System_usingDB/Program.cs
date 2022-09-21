@@ -337,6 +337,33 @@ namespace Payroll_System_usingDB
         public void getTotalSalary(int employeeID)
         {
 
+            using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+            {
+                sqlConnection.Open();
+                SqlTransaction sqlTransaction = sqlConnection.BeginTransaction();
+
+                SqlCommand sqlCommand = sqlConnection.CreateCommand();
+                sqlCommand.Transaction = sqlTransaction;
+
+                SqlParameter empID = new SqlParameter();
+                empID.ParameterName = "";
+                empID.Value = employeeID;
+
+                sqlCommand.Parameters.Add(empID);
+
+                try
+                {
+                    sqlCommand.CommandText = "SELECT EmployeeID FROM Employee WHERE Employee_Name = @name ";
+                    employeeID = (int)sqlCommand.ExecuteScalar();
+                    sqlTransaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.InnerException);
+                }
+            }
+
+            return employeeID;
         }
 
         void updateEmployee()
