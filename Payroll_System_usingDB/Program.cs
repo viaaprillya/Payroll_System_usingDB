@@ -8,18 +8,23 @@ namespace Payroll_System_usingDB
         
         static void Main(string[] args)
         {
-            Employee Agus = new Employee("Agus Kuncoro", "081234567891", "P2", "897654321");
             Database db = new Database();
-            //db.InsertEmployee(Agus);
+
+            Employee Agus = new Employee("Agus Kuncoro", "081234567891", "P2", "897654321");
+            db.InsertEmployee(Agus);
 
             Overtime ot_1 = new Overtime(2, "2022-09-12",100000);
-            //db.InsertOvertime(ot_1);
+            db.InsertOvertime(ot_1);
+
             Bonus bn_1 = new Bonus(2, "2022-09-12", 500000, "Bonus Penjualan Bulanan");
-            //db.InsertBonus(bn_1);
+            db.InsertBonus(bn_1);
+
             salaryCut sc_1 = new salaryCut(2, "2022-09-12", 50000, "Terlambat");
             db.InsertSalaryCut(sc_1);
 
-            //Console.WriteLine(db.getEmployeeID(Agus));
+            db.TotalSalary();
+            db.getSalary();
+            //db.deleteSalary(2);
 
         }
 
@@ -334,7 +339,7 @@ namespace Payroll_System_usingDB
             }
         }
 
-        public void getTotalSalary(int employeeID)
+        public void TotalSalary()
         {
 
             using (SqlConnection sqlConnection = new SqlConnection(connectionString))
@@ -345,16 +350,14 @@ namespace Payroll_System_usingDB
                 SqlCommand sqlCommand = sqlConnection.CreateCommand();
                 sqlCommand.Transaction = sqlTransaction;
 
-                SqlParameter empID = new SqlParameter();
-                empID.ParameterName = "";
-                empID.Value = employeeID;
-
-                sqlCommand.Parameters.Add(empID);
-
                 try
                 {
-                    sqlCommand.CommandText = "SELECT EmployeeID FROM Employee WHERE Employee_Name = @name ";
-                    employeeID = (int)sqlCommand.ExecuteScalar();
+                    sqlCommand.CommandText = "INSERT INTO Salary(EmployeeID, Basic_Salary, Allowance, Bonus_Total, SalaryCut_Total, Overtime_Total, Salary_Total) SELECT Employee.EmployeeID, Position.Basic_Salary, Position.Allowance, Bonus.Bonus_Amount, SalaryCut.SalaryCut_Amount, Overtime.Overtime_Fee, (Position.Basic_Salary+Position.Allowance+Bonus.Bonus_Amount+Overtime.Overtime_Fee-SalaryCut.SalaryCut_Amount) " + 
+                        "FROM Employee JOIN Position ON Employee.PositionID=Position.PositionID "+
+                        "JOIN Bonus ON Employee.EmployeeID=Bonus.EmployeeID "+
+                        "JOIN Overtime ON Employee.EmployeeID=Overtime.EmployeeID " +
+                        "JOIN SalaryCut ON Employee.EmployeeID=SalaryCut.EmployeeID ";
+                    sqlCommand.ExecuteNonQuery();
                     sqlTransaction.Commit();
                 }
                 catch (Exception ex)
@@ -362,20 +365,75 @@ namespace Payroll_System_usingDB
                     Console.WriteLine(ex.InnerException);
                 }
             }
-
-            return employeeID;
         }
 
-        void updateEmployee()
+        public void getSalary()
         {
+            string query = "SELECT Employee.Employee_Name, Salary.Salary_Total FROM Employee JOIN Salary ON Employee.EmployeeID = Salary.EmployeeID";
 
+            sqlConnection = new SqlConnection(connectionString);
+            SqlCommand sqlCommand = new SqlCommand(query, sqlConnection);
+
+            try
+            {
+                sqlConnection.Open();
+                using (SqlDataReader sqlDataReader = sqlCommand.ExecuteReader())
+                {
+                    if (sqlDataReader.HasRows)
+                    {
+                        while (sqlDataReader.Read())
+                        {
+                            Console.WriteLine(sqlDataReader[0] + " - " + sqlDataReader[1]);
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("No Data Rows");
+                    }
+                    sqlDataReader.Close();
+                }
+                sqlConnection.Close();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.InnerException);
+            }
         }
 
 
-        void deleteEmployee()
+        public void deleteSalary(int id)
         {
+            using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+            {
+                sqlConnection.Open();
+                SqlTransaction sqlTransaction = sqlConnection.BeginTransaction();
+
+                SqlCommand sqlCommand = sqlConnection.CreateCommand();
+                sqlCommand.Transaction = sqlTransaction;
+
+                SqlParameter sqlParameter = new SqlParameter();
+                sqlParameter.ParameterName = "@id";
+                sqlParameter.Value = id;
+
+                sqlCommand.Parameters.Add(sqlParameter);
+
+                try
+                {
+                    sqlCommand.CommandText = "DELETE FROM Salary " +
+                        "WHERE SalaryID=@id";
+                    sqlCommand.ExecuteNonQuery();
+                    sqlTransaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.InnerException);
+
+                }
+
+            }
 
         }
+
 
     }
 
